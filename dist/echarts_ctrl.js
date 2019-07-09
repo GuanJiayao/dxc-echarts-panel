@@ -65,6 +65,8 @@ System.register(['app/plugins/sdk', 'lodash', './libs/echarts.min', './libs/echa
             _export('EchartsCtrl', EchartsCtrl = function (_MetricsPanelCtrl) {
                 _inherits(EchartsCtrl, _MetricsPanelCtrl);
 
+                // eslint-disable-line
+
                 function EchartsCtrl($scope, $injector) {
                     _classCallCheck(this, EchartsCtrl);
 
@@ -96,7 +98,7 @@ System.register(['app/plugins/sdk', 'lodash', './libs/echarts.min', './libs/echa
                     return _this;
                 }
 
-                //post请求
+                // post请求
 
 
                 _createClass(EchartsCtrl, [{
@@ -104,24 +106,26 @@ System.register(['app/plugins/sdk', 'lodash', './libs/echarts.min', './libs/echa
                     value: function updateData() {
                         var _this2 = this;
 
-                        var that = this,
-                            xmlhttp = void 0;
+                        var that = this;
+                        var xmlhttp = void 0;
 
-                        if (window.XMLHttpRequest) {
-                            xmlhttp = new XMLHttpRequest();
-                        } else {
-                            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-                        }
-
-                        xmlhttp.onreadystatechange = function () {
-                            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                                that.UrlData = JSON.parse(xmlhttp.responseText);
-                                that.onDataReceived();
+                        if (this.panel.USE_URL && this.panel.USE_FAKE_DATA && this.panel.fakeData) {
+                            this.data = eval(this.panel.fakeData);
+                        } else if (that.panel.USE_URL && !that.panel.USE_FAKE_DATA && that.panel.url && that.panel.request) {
+                            if (window.XMLHttpRequest) {
+                                xmlhttp = new XMLHttpRequest();
+                            } else {
+                                xmlhttp = new ActiveXObject('Microsoft.XMLHTTP'); // eslint-disable-line
                             }
-                        };
 
-                        if (that.panel.USE_URL && !that.panel.USE_FAKE_DATA && that.panel.url && that.panel.request) {
-                            xmlhttp.open("POST", that.panel.url, true);
+                            xmlhttp.onreadystatechange = function () {
+                                if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+                                    that.UrlData = JSON.parse(xmlhttp.responseText);
+                                    that.onDataReceived();
+                                }
+                            };
+
+                            xmlhttp.open('POST', that.panel.url, true);
                             xmlhttp.send(that.panel.request);
                         } else {
                             xmlhttp = null;
@@ -134,11 +138,8 @@ System.register(['app/plugins/sdk', 'lodash', './libs/echarts.min', './libs/echa
                 }, {
                     key: 'onDataReceived',
                     value: function onDataReceived(dataList) {
-                        this.data = this.panel.USE_URL ? this.UrlData : dataList;
-
-                        if (this.panel.USE_URL && this.panel.USE_FAKE_DATA && this.panel.fakeData) {
-                            this.data = eval(this.panel.fakeData); // jshint ignore:line
-                        }
+                        // this.data = !this.panel.USE_URL && !this.panel.USE_FAKE_DATA ? dataList : this.data;
+                        this.data = this.panel.USE_URL && !this.panel.USE_FAKE_DATA ? this.UrlData : this.data;
 
                         this.IS_DATA_CHANGED = true;
                         this.render();
@@ -146,7 +147,7 @@ System.register(['app/plugins/sdk', 'lodash', './libs/echarts.min', './libs/echa
                     }
                 }, {
                     key: 'onDataError',
-                    value: function onDataError(err) {
+                    value: function onDataError() {
                         this.render();
                     }
                 }, {
@@ -158,58 +159,64 @@ System.register(['app/plugins/sdk', 'lodash', './libs/echarts.min', './libs/echa
                 }, {
                     key: 'importMap',
                     value: function importMap() {
+                        console.log("This is panel config,", this.panel);
                         if (!this.panel.IS_MAP) return;
+                        var path = void 0;
                         switch (this.panel.map) {
                             case '世界':
-                                System.import(this.getPanelPath() + 'libs/world.js');
+                                path = this.getPanelPath() + 'libs/world.js';
+                                System.import(path); // eslint-disable-line
                                 break;
                             case '中国':
-                                System.import(this.getPanelPath() + 'libs/china.js');
+                                path = this.getPanelPath() + 'libs/china.js';
+                                System.import(path); // eslint-disable-line
                                 break;
                             case '北京':
-                                System.import(this.getPanelPath() + 'libs/beijing.js');
+                                path = this.getPanelPath() + 'libs/beijing.js';
+                                System.import(path); // eslint-disable-line
                                 break;
                             // case '百度地图':
-                            //     System.import(this.getPanelPath() + 'libs/bmap.js');
-                            //     System.import(this.getPanelPath() + 'libs/getBmap.js');
+                            //   System.import(this.getPanelPath() + 'libs/bmap.js');
+                            //   System.import(this.getPanelPath() + 'libs/getBmap.js');
                             // break;
                             default:
                                 break;
                         }
+                        console.log("Now loaded map with path:", path);
                     }
                 }, {
                     key: 'getPanelPath',
                     value: function getPanelPath() {
                         // the system loader preprends publib to the url, add a .. to go back one level
-                        return '../' + grafanaBootData.settings.panels[this.pluginId].baseUrl + '/';
+                        return '../' + grafanaBootData.settings.panels[this.pluginId].baseUrl + '/'; // eslint-disable-line
                     }
                 }, {
                     key: 'link',
                     value: function link(scope, elem, attrs, ctrl) {
                         var $panelContainer = elem.find('.echarts_container')[0];
-                        var option = {},
-                            echartsData = [];
+                        var option = {}; // eslint-disable-line
+                        var echartsData = []; // eslint-disable-line
 
                         ctrl.IS_DATA_CHANGED = true;
 
-                        function setHeight() {
-                            var height = ctrl.height || panel.height || ctrl.row.height;
-                            if (_.isString(height)) {
-                                height = parseInt(height.replace('px', ''), 10);
-                            }
-                            // height -= 7;
-                            // height -= ctrl.panel.title ? 25 : 9;
-                            $panelContainer.style.height = height + 'px';
-                        }
-
-                        // function setWidth() {
-                        //     let width = document.body.clientWidth;
-                        //     width = (width - 5.6 * 2) * ctrl.panel.span / 12 - 5.6 * 2 - 1 * 2 - 10 * 2;
-                        //     $panelContainer.style.width = width + 'px';
+                        // function setHeight() {
+                        //   let height = ctrl.height || panel.height || ctrl.row.height;
+                        //   if (_.isString(height)) {
+                        //     height = parseInt(height.replace('px', ''), 10);
+                        //   }
+                        //   // height -= 7;
+                        //   // height -= ctrl.panel.title ? 25 : 9;
+                        //   $panelContainer.style.height = height + 'px';
                         // }
 
-                        setHeight();
-                        // setWidth();
+                        // // function setWidth() {
+                        // //   let width = document.body.clientWidth;
+                        // //   width = (width - 5.6 * 2) * ctrl.panel.span / 12 - 5.6 * 2 - 1 * 2 - 10 * 2;
+                        // //   $panelContainer.style.width = width + 'px';
+                        // // }
+
+                        // setHeight();
+                        // // setWidth();
 
                         var myChart = echarts.init($panelContainer, 'dark');
 
@@ -220,43 +227,21 @@ System.register(['app/plugins/sdk', 'lodash', './libs/echarts.min', './libs/echa
                             myChart.resize();
                         }, 1000);
 
-                        // 防止重复触发事件
-                        var callInterval = function callInterval() {
-                            var timeout, result;
-
-                            function func(callBack, interval) {
-                                var context = this; // jshint ignore:line
-                                var args = arguments;
-
-                                if (timeout) clearInterval(timeout);
-
-                                timeout = setInterval(function () {
-                                    result = callBack.apply(context, args);
-                                }, interval);
-
-                                return result;
-                            }
-
-                            return func;
-                        }();
-
                         function render() {
-
                             if (!myChart) {
                                 return;
                             }
-
-                            setHeight();
-                            myChart.resize();
 
                             if (ctrl.IS_DATA_CHANGED) {
                                 myChart.clear();
                                 echartsData = ctrl.data;
 
-                                eval(ctrl.panel.EchartsOption); // jshint ignore:line
+                                eval(ctrl.panel.EchartsOption);
 
                                 myChart.setOption(option);
                             }
+
+                            myChart.resize();
                         }
 
                         this.events.on('render', function () {
